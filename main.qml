@@ -22,16 +22,16 @@ ApplicationWindow {
 
     // ---- Parametre tanım listesi (tek yerden yönetiliyor) ----
     property var parameterDefs: [
-        { id: 0, name: "Parametre 1", type: "int",    unit: "birim", min: -1000, max: 1000, defaultValue: 0 },
-        { id: 1, name: "Parametre 2", type: "enum",   unit: "birim", options: ["Choose..", "A", "B", "C"] },
-        { id: 2, name: "Ölçek",       type: "slider", unit: "%",     min: 0, max: 500, defaultValue: 100 },
-        { id: 3, name: "Parametre 4", type: "int",    unit: "birim", min: 0, max: 100, defaultValue: 10 },
-        { id: 4, name: "Parametre 5", type: "enum",   unit: "birim", options: ["Choose..", "X", "Y", "Z"] }
+        { id: 0, name: "N1",       type: "slider", unit: "%",     min: 0, max: 105, defaultValue: 0 },
+        { id: 1, name: "EGT", type: "slider", stepSize: 1,  unit: "°C",     min: 300, max: 950, defaultValue: 300 },
+        { id: 2, name: "Fuel Flow", type: "slider", stepSize: 1,   unit: "kg/h", min: 200, max: 2500, defaultValue: 200 },
+        { id: 3, name: "Bleed Valve", type: "enum",    unit: "birim", options: ["Choose..", "Closed", "Partial", "Open"] },
+        { id: 4, name: "Vibration", type: "slider", stepSize: 0.1,   unit: "", min: 0, max: 5.0, defaultValue: 0}
     ]
 
     Rectangle {
         id: rightPanel
-        width: 350
+        width: 450
         color: "#4d4d4d"
         anchors.top: parent.top
         anchors.bottom: parent.bottom
@@ -172,36 +172,63 @@ ApplicationWindow {
                             id: sliderComponent
                             RowLayout {
                                 spacing: 8
+
+                                // ondalık basamak sayısını stepSize'dan türet (1 -> 0, 0.1 -> 1, 0.01 -> 2)
+                                property int decimals: {
+                                    var step = modelData.stepSize !== undefined ? modelData.stepSize : 1
+                                    var str = step.toString()
+                                    var dotIndex = str.indexOf(".")
+                                    return dotIndex === -1 ? 0 : str.length - dotIndex - 1
+                                }
+
+                                function formatValue(v) {
+                                    return v.toFixed(decimals)
+                                }
+
                                 Text { text: modelData.min + modelData.unit; color: "gray" }
+
                                 Slider {
                                     id: paramSlider
                                     from: modelData.min
                                     to: modelData.max
                                     value: modelData.defaultValue
-                                    stepSize: 1
+                                    stepSize: modelData.stepSize !== undefined ? modelData.stepSize : 1
                                     Layout.preferredWidth: 100
+
                                     Component.onCompleted: {
-                                        paramModel.setValue(modelData.name, Math.round(value))
+                                        paramModel.setValue(modelData.name, value)
                                     }
                                     onValueChanged: {
-                                        var rounded = Math.round(value)
-                                        sliderInput.text = rounded.toString()
-                                        console.log(modelData.name, "=", rounded)
-                                        paramModel.setValue(modelData.name, rounded)
+                                        sliderInput.text = formatValue(value)
+                                        paramModel.setValue(modelData.name, value)
                                     }
                                 }
+
                                 Text { text: modelData.max + modelData.unit; color: "gray" }
+
                                 TextField {
                                     id: sliderInput
-                                    text: Math.round(paramSlider.value).toString()
+                                    text: formatValue(paramSlider.value)
                                     Layout.preferredWidth: 50
-                                    validator: IntValidator { bottom: modelData.min; top: modelData.max }
+                                    validator: decimals === 0
+                                        ? intValidator
+                                        : doubleValidator
+
+                                    IntValidator { id: intValidator; bottom: modelData.min; top: modelData.max }
+                                    DoubleValidator {
+                                        id: doubleValidator
+                                        bottom: modelData.min
+                                        top: modelData.max
+                                        decimals: parent.decimals
+                                        notation: DoubleValidator.StandardNotation
+                                    }
+
                                     onEditingFinished: {
-                                        var num = parseInt(text)
+                                        var num = parseFloat(text)
                                         if (!isNaN(num)) {
                                             paramSlider.value = Math.max(paramSlider.from, Math.min(paramSlider.to, num))
                                         }
-                                        text = Math.round(paramSlider.value).toString()
+                                        text = formatValue(paramSlider.value)
                                     }
                                 }
                             }
