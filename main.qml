@@ -26,7 +26,7 @@ ApplicationWindow {
         { id: 1, name: "EGT", type: "slider", stepSize: 1,  unit: "°C",     min: 300, max: 950, defaultValue: 300 },
         { id: 2, name: "Fuel Flow", type: "slider", stepSize: 1,   unit: "kg/h", min: 200, max: 2500, defaultValue: 200 },
         { id: 3, name: "Bleed Valve", type: "enum",    unit: "birim", options: ["Choose..", "Closed", "Partial", "Open"] },
-        { id: 4, name: "Vibration", type: "slider", stepSize: 0.1,   unit: "", min: 0, max: 5.0, defaultValue: 0}
+        { id: 4, name: "Vibration", type: "slider", stepSize: 0.1,   unit: "", min: 0.0, max: 5.0, defaultValue: 0.0}
     ]
 
     Rectangle {

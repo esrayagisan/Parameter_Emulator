@@ -36,13 +36,17 @@ QByteArray PacketBuilder::buildPacket(const QVariantList &orderedValues)
     for (int i = 0; i < orderedValues.size(); ++i) {
         const QVariant &val = orderedValues[i];
 
-        if (val.type() == QVariant::Int) {
-            appendInt16(packet, static_cast<qint16>(val.toInt()));
-        } else if (val.type() == QVariant::Double) {
-            appendFloat(packet, val.toFloat());
+        double stepSize = m_stepSizes.value(i, 1.0);  // tanımlı değilse varsayılan: int davranışı
+
+        if (stepSize < 1.0) {
+            // Ondalıklı adım -> her zaman float olarak kodla.
+            // val.toDouble(): val int gelse de (örn. 2.0) sorunsuz double'a çevirir,
+            // bu yüzden değerin O AN'ki tipine değil, parametrenin stepSize
+            // TANIMINA göre karar veriyoruz.
+            appendFloat(packet, val.toDouble());
         } else if (val.type() == QVariant::String) {
-            // Bu index bir enum parametresiyse, seçenek listesinde ara
-            qint16 enumId = 0; // bulunamazsa güvenli varsayılan
+            // Enum parametresi
+            qint16 enumId = 0;
             if (m_enumOptions.contains(i)) {
                 int idx = m_enumOptions[i].indexOf(val.toString());
                 if (idx >= 0) {
@@ -53,7 +57,8 @@ QByteArray PacketBuilder::buildPacket(const QVariantList &orderedValues)
             }
             appendInt16(packet, enumId);
         } else {
-            appendInt16(packet, 0);
+            // Normal int parametre
+            appendInt16(packet, static_cast<qint16>(val.toInt()));
         }
     }
 

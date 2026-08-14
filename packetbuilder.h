@@ -20,11 +20,13 @@ public:
     // key: parametre sırasındaki index (0,1,2...), value: seçenek listesi
     Q_INVOKABLE void setEnumOptions(int paramIndex, const QStringList &options);
 
+
 private:
     void appendInt16(QByteArray &packet, qint16 value);
     void appendFloat(QByteArray &packet, float value);
 
     QMap<int, QStringList> m_enumOptions;
+    QMap<int, double> m_stepSizes;
 };
 
 #endif // PACKETBUILDER_H
