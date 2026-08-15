@@ -7,6 +7,7 @@ ApplicationWindow {
     visible: true
     width: 800
     height: 600
+
     Component.onCompleted: {
         var names = []
         for (var i = 0; i < parameterDefs.length; i++) {
@@ -15,6 +16,11 @@ ApplicationWindow {
             // Enum tipi parametreler için seçenek listesini de bildir
             if (parameterDefs[i].type === "enum") {
                 packetBuilder.setEnumOptions(i, parameterDefs[i].options)
+            }
+
+            // stepSize tanımlıysa PacketBuilder'a bildir (float/int kodlama kararı için)
+            if (parameterDefs[i].stepSize !== undefined) {
+                packetBuilder.setStepSize(i, parameterDefs[i].stepSize)
             }
         }
         paramModel.setParameterOrder(names)
@@ -172,6 +178,7 @@ ApplicationWindow {
                             id: sliderComponent
                             RowLayout {
                                 spacing: 8
+                                id: sliderRoot
 
                                 // ondalık basamak sayısını stepSize'dan türet (1 -> 0, 0.1 -> 1, 0.01 -> 2)
                                 property int decimals: {
@@ -219,7 +226,7 @@ ApplicationWindow {
                                         id: doubleValidator
                                         bottom: modelData.min
                                         top: modelData.max
-                                        decimals: parent.decimals
+                                        decimals: sliderRoot.decimals
                                         notation: DoubleValidator.StandardNotation
                                     }
 
